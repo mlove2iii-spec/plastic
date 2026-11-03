@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>이것도 플라스틱이야? 🔍</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#16285c; --sea:#1ea7e1; --sea-l:#e3f5fd; --sand:#fff8ec;
+  --o:#1b78e0; --p:#f08a1c; --d:#8a5ad6; --x:#2fa35a; --u:#7c8794;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  font-family:'Gowun Dodum',system-ui,sans-serif; color:var(--navy);
+  background:linear-gradient(180deg,#d9f1fc 0%,#f4fbff 45%,var(--sand) 100%);
+  min-height:100vh; -webkit-tap-highlight-color:transparent;
+}
+.wrap{max-width:780px;margin:0 auto;padding:18px 16px 60px}
+header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:space-between}
+h1{font-family:'Jua',sans-serif;font-size:clamp(30px,6vw,44px);margin:0;letter-spacing:-1px}
+h1 span{color:var(--sea)}
+.name{display:flex;align-items:center;gap:6px;background:#fff;border:3px solid var(--sea);border-radius:16px;padding:6px 12px;font-family:'Jua';font-size:20px}
+.name input{border:0;outline:0;font:inherit;width:120px;color:var(--navy);background:transparent}
+.tabs{display:flex;gap:8px;margin:16px 0 12px}
+.tab{flex:1;font-family:'Jua';font-size:22px;padding:12px;border-radius:18px;border:3px solid var(--sea);background:#fff;color:var(--navy);cursor:pointer}
+.tab.on{background:var(--sea);color:#fff}
+.card{background:#fff;border-radius:26px;box-shadow:0 6px 0 rgba(22,40,92,.08);padding:18px;border:3px solid #cfeefc}
+.ask{font-family:'Jua';font-size:24px;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+.searchrow{display:flex;gap:10px}
+#q{flex:1;min-width:0;font-family:'Jua';font-size:32px;padding:12px 18px;border-radius:20px;border:4px solid var(--sea);color:var(--navy);outline:none}
+#q:focus{border-color:var(--navy)}
+.big{font-family:'Jua';font-size:24px;border:0;border-radius:20px;padding:12px 20px;cursor:pointer;color:#fff;background:var(--navy)}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.mode{font-family:'Jua';font-size:26px;padding:16px 10px;border-radius:22px;border:0;cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 5px 0 rgba(0,0,0,.15)}
+.mode:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.15)}
+.mic{background:#ff6b6b}.pen{background:#3bb273}
+.mic.listening{animation:pulse 1s infinite}
+@keyframes pulse{50%{background:#e04848;transform:scale(1.03)}}
+.hint{font-size:17px;color:#556;margin:8px 4px 0;min-height:22px}
+#pad{display:none;margin-top:12px}
+#pad.show{display:block}
+.canvasbox{position:relative;border:4px dashed var(--pen,#3bb273);border-radius:20px;background:#fbfffc;touch-action:none}
+canvas{display:block;width:100%;height:220px;border-radius:16px;touch-action:none}
+.canvasbox .ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Jua';font-size:28px;color:#b6d8c2;pointer-events:none}
+.padbtns{display:flex;gap:10px;margin-top:10px}
+.padbtns button{flex:1}
+.light{background:#e9eef5;color:var(--navy)}
+.cands{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.chip{font-family:'Jua';font-size:24px;padding:8px 16px;border-radius:999px;border:3px solid var(--sea);background:#fff;color:var(--navy);cursor:pointer}
+.chip.hit{background:var(--sea-l)}
+.examples{margin-top:14px}
+.examples .lbl{font-family:'Jua';font-size:20px;margin-bottom:6px}
+#result{margin-top:16px;display:none}
+#result.show{display:block;animation:pop .35s ease-out}
+@keyframes pop{from{transform:scale(.92);opacity:0}to{transform:none;opacity:1}}
+.res{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center}
+.mark{width:120px;height:120px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Jua';font-size:84px;color:#fff;line-height:1}
+.item{font-family:'Jua';font-size:40px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.item .emo{font-size:46px}
+.headline{font-family:'Jua';font-size:32px;margin-top:2px}
+.bubble{margin-top:14px;display:flex;gap:10px;align-items:flex-start}
+.bubble .who{font-size:46px;line-height:1}
+.bubble .txt{background:var(--sea-l);border-radius:20px;padding:14px 16px;font-size:23px;line-height:1.55;font-weight:700;flex:1}
+.micro{margin-top:10px;display:inline-block;background:#fff3d6;border:2px solid #f5c35b;border-radius:14px;padding:6px 12px;font-size:19px;font-weight:700}
+.aha{margin-top:14px;border:3px solid var(--sea);border-radius:18px;padding:10px 14px;font-size:22px;font-weight:700;display:flex;gap:10px;align-items:center}
+.aha b{font-family:'Jua';background:var(--sea);color:#fff;border-radius:12px;padding:4px 10px;white-space:nowrap;font-weight:400}
+.resbtns{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.resbtns button{flex:1}
+.legend{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:16px;font-size:18px;font-weight:700}
+.legend div{display:flex;align-items:center;gap:8px;background:#fff;border-radius:14px;padding:8px 10px}
+.legend i{font-style:normal;width:34px;height:34px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Jua';font-size:22px;flex:none}
+/* class list */
+#classView{display:none}
+.group{margin-bottom:16px}
+.group h3{font-family:'Jua';font-size:26px;margin:0 0 8px;display:flex;align-items:center;gap:8px}
+.group h3 i{font-style:normal;width:38px;height:38px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px}
+.pills{display:flex;flex-wrap:wrap;gap:8px}
+.pill{background:#fff;border:3px solid #dbe6f0;border-radius:999px;padding:6px 14px;font-size:21px;font-weight:700;cursor:pointer}
+.pill small{color:#889;font-size:16px;margin-left:4px}
+.stat{font-family:'Jua';font-size:22px;margin-bottom:12px}
+.empty{font-size:20px;color:#778;padding:20px;text-align:center}
+.teacher{margin-top:26px;font-size:16px}
+.teacher summary{cursor:pointer;color:#667;font-weight:700}
+.teacher .box{background:#fff;border-radius:16px;padding:14px;margin-top:8px;border:2px solid #dbe6f0;line-height:1.6}
+.teacher input{width:100%;font-size:15px;padding:8px;border-radius:10px;border:2px solid #cdd;margin:6px 0}
+.teacher pre{background:#f3f6fa;border-radius:10px;padding:10px;font-size:12.5px;overflow:auto;white-space:pre}
+.teacher button{font-size:15px;padding:8px 12px;border-radius:10px;border:0;background:var(--navy);color:#fff;cursor:pointer;margin:2px 4px 2px 0}
+.teacher button.warn{background:#c0392b}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:10px 18px;border-radius:14px;font-size:18px;opacity:0;transition:.3s;pointer-events:none}
+.toast.show{opacity:1}
+@media (max-width:560px){
+  .res{grid-template-columns:1fr;justify-items:center;text-align:center}
+  .item{justify-content:center}
+  .mark{width:100px;height:100px;font-size:70px}
+  .legend{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>이것도 <span>플라스틱</span>이야? 🔍</h1>
+    <label class="name">이름 <input id="who" maxlength="10" placeholder="내 이름"></label>
+  </header>
+
+  <div class="tabs">
+    <button class="tab on" data-v="search">🔍 찾아보기</button>
+    <button class="tab" data-v="class">📋 우리 반 목록</button>
+  </div>
+
+  <!-- 찾아보기 -->
+  <section id="searchView">
+    <div class="card">
+      <p class="ask">🐬 궁금한 물건 이름을 알려 줘!</p>
+      <div class="searchrow" id="f">
+        <input id="q" placeholder="예: 칫솔" enterkeyhint="search">
+        <button class="big" type="button" id="goBtn">찾기</button>
+      </div>
+      <div class="modes">
+        <button class="mode mic" id="micBtn" type="button">🎤 말로 하기</button>
+        <button class="mode pen" id="penBtn" type="button">✏️ 손글씨</button>
+      </div>
+      <p class="hint" id="hint"></p>
+
+      <div id="pad">
+        <div class="canvasbox"><canvas id="cv"></canvas><div class="ph" id="ph">여기에 글씨를 써요 ✏️</div></div>
+        <div class="padbtns">
+          <button class="big light" id="clearBtn" type="button">🧽 지우기</button>
+          <button class="big" id="readBtn" type="button" style="background:#3bb273">👀 다 썼어요</button>
+        </div>
+        <div class="cands" id="cands"></div>
+      </div>
+
+      <div class="examples">
+        <div class="lbl">⭐ 이것도 궁금하지 않니?</div>
+        <div class="cands" id="ex"></div>
+      </div>
+    </div>
+
+    <div id="result" class="card"></div>
+
+    <div class="legend">
+      <div><i style="background:var(--o)">O</i>플라스틱이에요</div>
+      <div><i style="background:var(--p)">△</i>플라스틱이 들어 있어요</div>
+      <div><i style="background:var(--d)">△</i>플라스틱일 수도 있어요</div>
+      <div><i style="background:var(--x)">X</i>플라스틱이 아니에요</div>
+    </div>
+  </section>
+
+  <!-- 우리 반 목록 -->
+  <section id="classView">
+    <div class="card">
+      <div class="stat" id="stat"></div>
+      <div id="groups"></div>
+      <div style="text-align:center"><button class="big light" id="refreshBtn" type="button">🔄 새로고침</button></div>
+    </div>
+
+    <details class="teacher">
+      <summary>👩‍🏫 선생님 설정</summary>
+      <div class="box">
+        <b>우리 반 모든 기기의 검색을 한곳에 모으기 (선택)</b><br>
+        설정하지 않으면 <u>이 기기에서 검색한 것</u>만 목록에 보여요.<br>
+        1) 구글 스프레드시트를 새로 만들고 <b>확장 프로그램 → Apps Script</b>를 열어요.<br>
+        2) 원래 있던 코드를 지우고 아래 코드를 붙여 넣은 뒤 저장해요. 함수 목록에서 <b>테스트</b>를 골라 실행하고 권한을 허용해요. (doPost를 직접 실행하면 오류가 나요)
+        <pre id="gs"></pre>
+        <button type="button" id="copyGs">코드 복사</button><br>
+        3) <b>배포 → 새 배포 → 유형: 웹 앱</b>, 실행: <b>나</b>, 액세스 권한: <b>모든 사용자</b>로 배포해요.<br>
+        4) 나오는 웹 앱 URL(…/exec)을 아래에 붙여 넣고 저장해요. 학생 기기마다 한 번씩 해 주거나, 파일 맨 아래 <code>SHEET_URL</code>에 넣어 두면 모든 기기에 적용돼요.
+        <input id="sheetUrl" placeholder="https://script.google.com/macros/s/.../exec">
+        <button type="button" id="saveUrl">저장</button>
+        <span id="urlState"></span>
+        <hr>
+        <label><input type="checkbox" id="autoSpeak" style="width:auto"> 결과를 소리로 읽어 주기</label><br>
+        <button type="button" class="warn" id="clearLog">이 기기의 검색 기록 지우기</button>
+      </div>
+    </details>
+  </section>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== 선생님이 미리 넣어 둘 수 있는 구글 시트 웹앱 주소 (선택) ===== */
+const SHEET_URL = "";
+
+/* ===== 물건 사전 =====
+   형식: 이모지 | 이름들(쉼표) | 판정 | 설명 | 미세플라스틱(1)
+   판정: o=플라스틱이에요, p=플라스틱이 들어 있어요, d=플라스틱일 수도 있어요, x=플라스틱이 아니에요 */
+const RAW = `
+🧴|페트병,생수병,음료수병,음료병,사이다병,콜라병|o|투명한 페트병은 플라스틱으로 만들어요. 뚜껑도 플라스틱이에요.
+🥤|빨대,플라스틱빨대|o|빨대는 대부분 플라스틱이에요. 바다에 버려진 빨대 때문에 바다 동물이 다치기도 해요.
+📜|종이빨대|d|대부분 종이예요. 하지만 물에 잘 젖지 않게 하려고 다른 재료를 바른 것도 있어요.
+🛍️|비닐봉지,비닐봉투,비닐,봉지,봉투,비닐백|o|비닐도 플라스틱이에요! 플라스틱을 아주 얇게 편 거예요.
+🧱|레고,블록,블럭,레고블록|o|레고 블록은 단단한 플라스틱으로 만들어요.
+🪥|칫솔|o|칫솔 손잡이와 솔이 모두 플라스틱이에요.
+🪮|빗,머리빗|d|플라스틱 빗이 많아요. 나무로 만든 빗은 플라스틱이 아니에요.
+🖊️|볼펜,펜,사인펜,형광펜,네임펜,매직|o|펜의 몸통과 뚜껑은 플라스틱이에요.
+🖍️|색연필|d|나무로 감싼 색연필도 있고, 돌려서 쓰는 플라스틱 색연필도 있어요.
+✏️|연필|x|연필은 나무와 까만 심(흑연)으로 만들어요.
+✏️|샤프,샤프펜슬|o|샤프 몸통은 플라스틱이에요.
+⬜|지우개|o|요즘 지우개는 대부분 플라스틱으로 만들어요. 깜짝 놀랐죠?
+📏|자|d|플라스틱 자도 있고, 나무 자, 쇠 자도 있어요.
+✂️|가위|p|손잡이는 플라스틱, 자르는 날은 쇠예요.
+🖍️|크레파스,크레용|x|크레파스는 왁스와 기름, 색가루로 만들어요. 플라스틱은 아니에요.
+🧴|풀,딱풀|p|풀을 담은 통이 플라스틱이에요.
+🧴|물풀|p|통은 플라스틱이고, 끈끈한 재료도 플라스틱과 비슷한 성분이에요.
+🟢|슬라임|p|슬라임은 물풀로 만들어요. 물풀에는 플라스틱과 비슷한 성분이 들어 있어요.
+🎨|클레이,아이클레이,점토,지점토|p|말랑한 클레이에는 플라스틱과 비슷한 성분이 들어 있는 경우가 많아요.
+🟤|찰흙|x|찰흙은 흙으로 만들어요.
+✨|반짝이,글리터|o|반짝이는 아주 작게 자른 플라스틱이에요.|1
+🏷️|스티커|d|많은 스티커가 얇은 플라스틱 필름으로 만들어져요. 종이 스티커도 있어요.
+📒|공책,책,종이,노트,스케치북,색종이,신문,신문지,도화지|x|종이는 나무로 만들어요. 플라스틱이 아니에요.
+🧻|휴지,화장지,두루마리휴지,키친타월,키친타올|x|휴지는 나무로 만든 종이예요. 물티슈와는 달라요!
+🧻|물티슈|p|물티슈 천에는 플라스틱 실이 들어 있어요. 그래서 변기에 버리면 안 돼요!|1
+😷|마스크|o|마스크의 하얀 천은 아주 가는 플라스틱 실로 만들어요.|1
+🧤|고무장갑|p|고무장갑은 석유로 만든 합성고무나 플라스틱으로 만든 것이 많아요.
+🛞|타이어,자동차바퀴|p|타이어에는 합성고무와 플라스틱 실이 들어 있어요. 자동차가 달릴 때 타이어가 닳아서 미세플라스틱이 생겨요.|1
+🍵|티백,녹차티백,보리차티백|p|어떤 티백은 플라스틱 망으로 만들어요. 종이 티백도 붙일 때 플라스틱을 쓰기도 해요.|1
+🍬|껌|p|껌의 말랑하게 씹히는 부분에 플라스틱과 비슷한 성분이 들어 있어요. 그래서 바닥에 붙으면 잘 안 떨어져요.
+👕|옷,티셔츠,티,셔츠,바지,치마,원피스,잠바,점퍼,패딩,후드티,체육복,운동복,레깅스,조끼,내복,잠옷,청바지|p|옷에는 플라스틱으로 만든 실(폴리에스터, 나일론)이 많이 들어 있어요. 빨래할 때 아주 작은 플라스틱이 빠져나와요.|1
+👕|면티,면옷,면|x|면은 목화라는 식물에서 나온 실이에요. 옷 라벨에 '면 100%'라고 쓰여 있으면 플라스틱이 아니에요.
+🧶|털실|d|양털로 만든 털실도 있고, 플라스틱 실로 만든 털실도 있어요.
+🐑|양모,울,양털|x|양털은 양에게서 얻어요. 플라스틱이 아니에요.
+🧦|양말,스타킹|p|양말에는 쭉쭉 늘어나는 플라스틱 실이 들어 있어요.|1
+👟|운동화,신발,구두|p|신발 바닥과 겉감에 플라스틱과 합성고무가 많이 들어 있어요.
+🩴|슬리퍼,크록스,샌들,실내화|o|말랑한 플라스틱이나 합성고무로 만들어요.
+🥾|장화,레인부츠|o|장화는 대부분 플라스틱이나 고무로 만들어요.
+🎒|책가방,가방,백팩,배낭,신발주머니|o|가방 천은 플라스틱 실로 만들고, 지퍼와 버클도 플라스틱이에요.
+👜|장바구니,에코백,시장바구니|d|장바구니는 플라스틱 천으로 만든 것이 많아요. 면으로 만든 에코백도 있어요.
+👒|모자,야구모자,벙거지,털모자|p|모자 천에 플라스틱 실이 들어 있는 경우가 많아요.
+☂️|우산,양산|p|우산 천은 플라스틱 실로 만들고, 손잡이도 플라스틱인 경우가 많아요.
+🧥|우비,비옷,우의|o|비옷은 물이 새지 않는 플라스틱으로 만들어요.
+🩱|수영복,래쉬가드,래시가드|o|수영복 천은 쭉쭉 늘어나는 플라스틱 실로 만들어요.|1
+🛟|튜브,수영튜브,구명조끼|o|물놀이 튜브는 플라스틱으로 만들어요.
+🪥|치약,치약튜브,치약통|p|치약을 담은 통(튜브)이 플라스틱이에요.
+🧴|샴푸,샴푸통,린스,바디워시,세제,세제통,로션,화장품|p|담는 통이 플라스틱이에요.
+🥡|플라스틱통,반찬통,밀폐용기,통,락앤락,플라스틱용기,배달용기|o|반찬통이나 배달 음식 그릇은 대부분 플라스틱이에요.
+🍱|도시락,도시락통|d|플라스틱 도시락통도 있고, 쇠(스테인리스) 도시락통도 있어요.
+🪣|양동이,대야,물뿌리개|o|대부분 플라스틱으로 만들어요.
+🧺|바구니,빨래바구니|d|플라스틱 바구니도 있고, 대나무나 나무 바구니도 있어요.
+🪝|옷걸이|d|플라스틱 옷걸이도 있고, 쇠나 나무 옷걸이도 있어요.
+🎞️|테이프,투명테이프,셀로판테이프,박스테이프,스카치테이프|o|투명 테이프는 플라스틱 필름에 끈끈이를 바른 거예요.
+🎞️|랩,비닐랩,주방랩|o|랩도 아주 얇은 플라스틱이에요.
+⬜|스티로폼,아이스박스|o|스티로폼은 플라스틱에 공기를 넣어 부풀린 거예요. 잘 부서져서 바다에 많이 떠다녀요.|1
+🥤|일회용컵,플라스틱컵,테이크아웃컵,아이스컵|o|일회용 플라스틱 컵이에요. 뚜껑과 빨대도 플라스틱이에요.
+☕|종이컵|p|종이컵 안쪽에는 물이 새지 않게 얇은 플라스틱 막이 있어요.
+🥛|우유팩,우유곽,주스팩,멸균팩|p|종이 안쪽에 얇은 플라스틱 막이 있어서 우유가 새지 않아요.
+🍜|컵라면,컵라면용기|p|컵라면 그릇은 스티로폼이거나, 종이에 플라스틱 막을 입힌 거예요.
+🥫|캔,음료수캔,통조림,참치캔|p|캔은 금속이지만, 안쪽에 얇은 플라스틱 막이 칠해져 있어요.
+🥤|컵|d|플라스틱 컵은 플라스틱이에요. 유리컵이나 도자기 컵은 아니에요.
+🍽️|접시,그릇|d|플라스틱 접시도 있고, 도자기나 유리 접시도 있어요.
+🥄|숟가락,포크,수저|d|일회용 숟가락은 플라스틱이에요. 쇠 숟가락은 아니에요.
+🥄|일회용숟가락,플라스틱숟가락,일회용포크,플라스틱포크|o|일회용 숟가락과 포크는 플라스틱이에요.
+🥢|젓가락|d|나무젓가락, 쇠젓가락은 아니지만 플라스틱 젓가락도 있어요.
+🥢|나무젓가락|x|나무로 만들었어요.
+🍶|물병,텀블러,보온병|d|뚜껑은 대부분 플라스틱이에요. 몸통은 플라스틱도 있고 쇠(스테인리스)도 있어요.
+🍼|젖병|o|대부분 플라스틱으로 만들어요. 유리 젖병도 있어요.
+🔘|병뚜껑,뚜껑|o|병뚜껑은 대부분 플라스틱이에요.
+🍪|과자봉지,과자봉투,과자,라면봉지,사탕껍질,사탕봉지,과자껍질|o|과자 봉지는 플라스틱 필름으로 만들어요. 반짝이는 안쪽은 아주 얇은 금속이에요.
+🥛|요구르트병,요구르트,요플레,야쿠르트|p|요구르트를 담은 병이 플라스틱이에요.
+🍦|아이스크림|p|아이스크림 껍질과 통은 플라스틱인 경우가 많아요.
+⌨️|키보드,자판,마우스|p|단추와 몸통은 플라스틱이에요. 안에는 전선과 금속도 있어요.
+📱|휴대폰,핸드폰,스마트폰,폰,태블릿,패드,아이패드,갤럭시탭,노트북,컴퓨터,크롬북,텔레비전,티비,tv,모니터,게임기|p|겉의 일부는 플라스틱이고, 안에는 금속과 유리도 들어 있어요.
+🔌|충전기,전선,케이블,콘센트,멀티탭,이어폰,헤드셋,헤드폰,리모컨|p|겉을 감싸는 부분이 플라스틱이에요. 안에는 구리 같은 금속이 있어요.
+🔦|손전등,후레쉬,플래시,랜턴|p|몸통이 플라스틱인 것이 많아요.
+🪭|선풍기,손선풍기,휴대용선풍기|p|날개와 몸통이 플라스틱이에요.
+⌚|시계,손목시계,벽시계|p|시곗줄이나 몸통에 플라스틱이 들어 있는 경우가 많아요.
+✏️|필통|p|대부분 플라스틱이나 플라스틱 천으로 만들어요.
+🧽|수세미,스펀지|o|초록 수세미와 스펀지는 플라스틱이에요. 설거지할 때 작은 조각이 떨어져 나와요.|1
+🌿|천연수세미|x|수세미 열매를 말려서 만든 거예요.
+🧸|인형,곰인형,애착인형|p|인형의 털과 속 솜은 플라스틱 실인 경우가 많아요.
+🪀|장난감|d|많은 장난감이 플라스틱이에요. 나무 장난감도 있어요.
+🧩|퍼즐|d|종이 퍼즐도 있고, 플라스틱이나 나무 퍼즐도 있어요.
+⚽|공,축구공,농구공,배구공,피구공,탱탱볼,야구공|p|공의 겉이나 속에 플라스틱과 합성고무가 들어 있어요.
+🎈|풍선|d|고무풍선은 고무나무에서 나온 고무예요. 반짝이는 은박 풍선은 플라스틱이에요.
+🪢|줄넘기|p|줄은 대부분 플라스틱이에요.
+🛏️|이불,담요,극세사,베개,쿠션|p|이불 천과 솜에 플라스틱 실이 들어 있는 경우가 많아요.|1
+👓|안경|p|안경테나 안경알이 플라스틱인 경우가 많아요.
+🩹|반창고,밴드,대일밴드|p|반창고의 붙이는 부분에 플라스틱이 들어 있어요.
+👶|기저귀|p|기저귀 안에는 플라스틱과 물을 빨아들이는 가루가 들어 있어요.
+💳|카드,교통카드,체크카드|o|플라스틱 카드예요.
+🔘|단추|d|플라스틱 단추가 많아요. 나무나 쇠 단추도 있어요.
+🤐|지퍼|d|플라스틱 지퍼도 있고 쇠 지퍼도 있어요.
+🎀|머리끈,머리핀,머리띠,고무줄|p|플라스틱이나 플라스틱 실이 들어 있는 경우가 많아요.
+🎣|그물,낚싯줄,어망|o|그물과 낚싯줄은 플라스틱 실로 만들어요. 바다에 버려지면 바다 동물이 걸려 다쳐요.|1
+🪑|의자,책상|d|플라스틱 의자도 있고, 나무나 쇠로 만든 것도 있어요.
+🚗|자동차,차|p|자동차의 범퍼, 의자, 손잡이 같은 곳에 플라스틱이 많이 들어 있어요.
+🚲|자전거|p|손잡이, 의자, 바퀴 같은 곳에 플라스틱과 합성고무가 들어 있어요.
+🧹|빗자루,쓰레받기|d|플라스틱으로 만든 것도 있고, 짚이나 나무로 만든 것도 있어요.
+🧪|플라스틱|o|플라스틱은 석유로 만든 재료예요. 가볍고 튼튼해서 많은 물건에 쓰여요.
+🔬|미세플라스틱|o|5mm보다 작은 플라스틱이에요. 너무 작아서 눈으로 볼 수 없는 것도 있어요.|1
+🥃|유리,유리병,유리컵|x|유리는 모래로 만들어요. 플라스틱이 아니에요.
+🍾|병|d|유리병도 있고, 플라스틱 병(페트병)도 있어요.
+🥄|쇠,철,금속,동전,쇠숟가락,스테인리스,알루미늄,호일,은박지|x|금속이에요. 플라스틱이 아니에요.
+🪵|나무,나뭇잎,나뭇가지,대나무,솔방울|x|자연에서 온 거예요. 플라스틱이 아니에요.
+🪨|돌,모래,흙,자갈|x|자연에서 온 거예요. 플라스틱이 아니에요.
+🍎|사과,과일,바나나,귤,채소,밥,빵,우유,달걀,계란,김치|x|먹는 음식은 플라스틱이 아니에요. 하지만 담는 포장은 플라스틱일 수 있어요.
+💧|물|x|물은 플라스틱이 아니에요.
+🏺|도자기,사기그릇,뚝배기,화분|x|흙을 구워서 만들었어요. (플라스틱 화분도 있어요!)
+📦|상자,박스,종이상자,택배상자|x|상자는 종이로 만들어요. 붙인 테이프는 플라스틱이에요.
+🐚|조개,조개껍데기,소라,소라껍데기|x|바다에서 온 자연물이에요.
+👞|가죽|d|진짜 가죽은 동물 가죽이에요. 인조가죽은 플라스틱으로 만들어요.
+👜|인조가죽|o|인조가죽은 플라스틱으로 만들어요.
+🟫|고무,천연고무|d|고무나무에서 나온 천연고무도 있고, 석유로 만든 합성고무도 있어요.
+🧼|비누|x|비누는 기름으로 만들어요. 비누 포장은 플라스틱일 수 있어요.
+`;
+
+const DB = [];
+const NAME2 = new Map();
+RAW.trim().split('\n').forEach(line => {
+  const [emo, names, v, reason, micro] = line.split('|');
+  const item = {emo, names: names.split(','), v, reason, micro: micro === '1'};
+  DB.push(item);
+  item.names.forEach(n => NAME2.set(norm(n), item));
+});
+const ALLNAMES = [...NAME2.keys()].sort((a,b)=>b.length-a.length);
+
+function norm(s){ return (s||'').toLowerCase().replace(/[\s?!.,~"'()·…]/g,''); }
+
+/* 아이들이 말한 문장에서 물건 이름 찾기 */
+function lookup(input){
+  let q = norm(input);
+  if(!q) return null;
+  const tries = [q];
+  // "칫솔도 플라스틱이야?" → "칫솔도"
+  if(!q.startsWith('플라스틱') && q.includes('플라스틱')) tries.push(q.slice(0, q.indexOf('플라스틱')));
+  const more = [];
+  tries.forEach(t => {
+    more.push(t.replace(/(이야|이에요|예요|인가요|이니|이지|일까요?|이나요|맞아요?|맞나요|야|요)$/,''));
+  });
+  more.forEach(t => {
+    tries.push(t);
+    tries.push(t.replace(/(에도|에는|은|는|이|가|도|을|를|랑|이랑|하고)$/,''));
+  });
+  const uniq = [...new Set(tries.filter(Boolean))];
+  // 1) 정확히 일치
+  for(const t of uniq) if(NAME2.has(t)) return {item:NAME2.get(t), name:t};
+  // 3) 앞부분만 쓴 경우 (예: "고무장" → 고무장갑)
+  const base = uniq[uniq.length-1];
+  if(base.length >= 2){
+    for(const n of [...ALLNAMES].reverse()) if(n.startsWith(base)) return {item:NAME2.get(n), name:n};
+  }
+  // 2) 문장 안에 들어 있는 가장 긴 이름 (두 글자 이상)
+  for(const n of ALLNAMES){
+    if(n.length < 2 || n === '플라스틱') continue;
+    if(uniq.some(t => t.includes(n))) return {item:NAME2.get(n), name:n};
+  }
+  return null;
+}
+
+/* ===== 화면 ===== */
+const $ = s => document.querySelector(s);
+const V = {
+  o:{mark:'O', color:'var(--o)', head:'플라스틱이에요!', who:'🐬'},
+  p:{mark:'△', color:'var(--p)', head:'플라스틱이 들어 있어요!', who:'🦑'},
+  d:{mark:'△', color:'var(--d)', head:'플라스틱일 수도 있어요!', who:'⭐'},
+  x:{mark:'X', color:'var(--x)', head:'플라스틱이 아니에요!', who:'🐢'},
+  u:{mark:'?', color:'var(--u)', head:'아직 잘 몰라요', who:'🐢'}
+};
+function hasBatchim(w){ const c = w.charCodeAt(w.length-1); return c>=0xAC00 && c<=0xD7A3 && (c-0xAC00)%28>0; }
+function eunNeun(w){ return w + (hasBatchim(w)?'은':'는'); }
+function aha(name, v){
+  if(v==='o') return `${name}도 플라스틱이구나!`;
+  if(v==='p') return `${name}에도 플라스틱이 들어 있구나!`;
+  if(v==='d') return `${eunNeun(name)} 플라스틱일 때도 있구나!`;
+  if(v==='x') return `${eunNeun(name)} 플라스틱이 아니구나!`;
+  return '';
+}
+const store = {
+  get(k,d){ try{ const v = localStorage.getItem(k); return v===null? d : JSON.parse(v);}catch(e){return d;} },
+  set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2200); }
+
+let lastSpeech = '';
+function speak(text){
+  if(!('speechSynthesis' in window)) return;
+  try{
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang='ko-KR'; u.rate=0.9; u.pitch=1.1;
+    const ko = speechSynthesis.getVoices().find(v=>v.lang && v.lang.startsWith('ko'));
+    if(ko) u.voice = ko;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+function search(text){
+  text = (text||'').trim();
+  if(!text) { toast('물건 이름을 알려 줘!'); return; }
+  $('#q').value = text;
+  const hit = lookup(text);
+  const box = $('#result');
+  let html, say;
+  if(hit){
+    const {item, name} = hit;
+    const show = item.names.includes(name) ? name : item.names[0];
+    const v = V[item.v];
+    html = `
+      <div class="res">
+        <div class="mark" style="background:${v.color}">${v.mark}</div>
+        <div>
+          <div class="item"><span class="emo">${item.emo}</span>${esc(show)}</div>
+          <div class="headline" style="color:${v.color}">${v.head}</div>
+        </div>
+      </div>
+      <div class="bubble"><div class="who">${v.who}</div><div class="txt">${esc(item.reason)}</div></div>
+      ${item.micro ? '<div class="micro">🔬 아주 작은 미세플라스틱이 나올 수 있어요</div>' : ''}`;
+    say = `${show}. ${v.head} ${item.reason}`;
+    log({q:text, item:show, emo:item.emo, v:item.v});
+  } else {
+    const v = V.u;
+    html = `
+      <div class="res">
+        <div class="mark" style="background:${v.color}">?</div>
+        <div>
+          <div class="item">${esc(text)}</div>
+          <div class="headline" style="color:${v.color}">${v.head}</div>
+        </div>
+      </div>
+      <div class="bubble"><div class="who">${v.who}</div><div class="txt">이 물건은 아직 공부하는 중이에요. 선생님께 알려 둘게요! 함께 알아봐요. 물건에 붙은 라벨을 살펴보는 것도 좋아요.</div></div>`;
+    say = `${text}. 아직 잘 몰라요. 선생님과 함께 알아봐요.`;
+    log({q:text, item:null, emo:'❓', v:'u'});
+  }
+  html += `<div class="resbtns">
+      <button class="big light" type="button" data-act="speak">🔊 다시 듣기</button>
+      <button class="big" type="button" data-act="again">🔍 다른 물건 찾기</button></div>`;
+  box.innerHTML = html;
+  box.classList.remove('show'); void box.offsetWidth; box.classList.add('show');
+  lastSpeech = say;
+  if(store.get('autoSpeak', false)) speak(say);
+  try{ box.scrollIntoView({behavior:'smooth', block:'start'}); }catch(e){}
+}
+$('#result').addEventListener('click', e=>{ const b=e.target.closest('[data-act]'); if(!b) return; if(b.dataset.act==='speak') speak(lastSpeech); else again(); });
+function again(){ $('#q').value=''; $('#result').classList.remove('show'); window.scrollTo({top:0,behavior:'smooth'}); }
+function esc(s){ return String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+$('#goBtn').addEventListener('click', ()=>{ $('#q').blur(); search($('#q').value); });
+$('#q').addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.isComposing){ e.preventDefault(); $('#q').blur(); search($('#q').value); } });
+
+/* 예시 */
+const EX = ['타이어','티백','껌','물티슈','지우개','우유팩','연필','마스크'];
+$('#ex').innerHTML = EX.map(n=>`<button class="chip" type="button" data-n="${n}">${NAME2.get(n).emo} ${n}</button>`).join('');
+$('#ex').addEventListener('click', e=>{ const b=e.target.closest('[data-n]'); if(b) search(b.dataset.n); });
+
+/* 이름 */
+$('#who').value = store.get('who','');
+$('#who').addEventListener('input', ()=>store.set('who', $('#who').value.trim()));
+
+/* ===== 🎤 음성 인식 ===== */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null, listening = false;
+$('#micBtn').addEventListener('click', ()=>{
+  const hint = $('#hint');
+  if(!SR){
+    hint.innerHTML = '이 브라우저는 음성 인식이 안 돼요. <b>크롬</b>으로 열거나, 자판의 🎤 버튼을 눌러 말해 보세요.';
+    $('#q').focus(); return;
+  }
+  if(listening){ rec && rec.stop(); return; }
+  rec = new SR();
+  rec.lang = 'ko-KR'; rec.interimResults = true; rec.maxAlternatives = 3; rec.continuous = false;
+  let finalText = '';
+  rec.onstart = ()=>{ listening = true; $('#micBtn').classList.add('listening'); $('#micBtn').textContent='👂 듣고 있어요…'; hint.textContent='물건 이름을 크게 말해 보세요. 예) "타이어"'; };
+  rec.onresult = e=>{
+    let t='';
+    for(let i=0;i<e.results.length;i++) t += e.results[i][0].transcript;
+    $('#q').value = t;
+    if(e.results[e.results.length-1].isFinal){
+      // 여러 후보 중 사전에 있는 것을 우선
+      const r = e.results[e.results.length-1];
+      finalText = t;
+      for(let k=0;k<r.length;k++){ if(lookup(r[k].transcript)){ finalText = r[k].transcript; break; } }
+    }
+  };
+  rec.onerror = e=>{
+    if(e.error==='not-allowed' || e.error==='service-not-allowed') hint.innerHTML='마이크를 쓸 수 없어요. 주소창 옆 🔒을 눌러 <b>마이크 허용</b>을 해 주세요.';
+    else if(e.error==='no-speech') hint.textContent='소리가 안 들렸어요. 다시 눌러서 말해 보세요.';
+    else if(e.error==='network') hint.textContent='인터넷 연결을 확인해 주세요.';
+    else hint.textContent='잘 못 들었어요. 다시 해 볼까요?';
+  };
+  rec.onend = ()=>{
+    listening = false; $('#micBtn').classList.remove('listening'); $('#micBtn').textContent='🎤 말로 하기';
+    if(finalText){ hint.textContent=''; search(finalText); }
+  };
+  try{ rec.start(); }catch(e){ hint.textContent='다시 눌러 주세요.'; }
+});
+
+/* ===== ✏️ 손글씨 ===== */
+const cv = $('#cv'), ctx = cv.getContext('2d');
+let strokes = [], cur = null, t0 = 0, drawing = false;
+function fitCanvas(){
+  const r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio||1;
+  cv.width = r.width*dpr; cv.height = r.height*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.lineWidth = 7; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.strokeStyle='#16285c';
+  redraw();
+}
+function redraw(){
+  const r = cv.getBoundingClientRect();
+  ctx.clearRect(0,0,r.width,r.height);
+  strokes.forEach(s=>{ ctx.beginPath(); s[0].forEach((x,i)=>{ i? ctx.lineTo(x,s[1][i]) : ctx.moveTo(x,s[1][i]); }); if(s[0].length===1) ctx.lineTo(s[0][0]+0.1,s[1][0]); ctx.stroke(); });
+  $('#ph').style.display = strokes.length? 'none':'flex';
+}
+function pos(e){ const r = cv.getBoundingClientRect(); return [e.clientX-r.left, e.clientY-r.top]; }
+cv.addEventListener('pointerdown', e=>{
+  e.preventDefault(); cv.setPointerCapture(e.pointerId); drawing = true;
+  if(!t0) t0 = Date.now();
+  const [x,y] = pos(e); cur = [[x],[y],[Date.now()-t0]]; strokes.push(cur); redraw();
+});
+cv.addEventListener('pointermove', e=>{
+  if(!drawing) return; e.preventDefault();
+  const [x,y] = pos(e); cur[0].push(x); cur[1].push(y); cur[2].push(Date.now()-t0);
+  const n = cur[0].length; ctx.beginPath(); ctx.moveTo(cur[0][n-2],cur[1][n-2]); ctx.lineTo(x,y); ctx.stroke();
+});
+['pointerup','pointercancel','pointerleave'].forEach(ev=>cv.addEventListener(ev, ()=>{ drawing=false; }));
+function clearPad(){ strokes=[]; t0=0; redraw(); $('#cands').innerHTML=''; }
+$('#clearBtn').addEventListener('click', clearPad);
+$('#penBtn').addEventListener('click', ()=>{
+  const pad = $('#pad'); pad.classList.toggle('show');
+  if(pad.classList.contains('show')){ fitCanvas(); $('#hint').textContent='네모 칸에 손가락이나 펜으로 크게 써 보세요.'; }
+  else $('#hint').textContent='';
+});
+window.addEventListener('resize', ()=>{ if($('#pad').classList.contains('show')) fitCanvas(); });
+
+$('#readBtn').addEventListener('click', async ()=>{
+  if(!strokes.length){ toast('먼저 글씨를 써 주세요 ✏️'); return; }
+  const r = cv.getBoundingClientRect();
+  $('#cands').innerHTML = '<span style="font-size:20px">👀 읽는 중…</span>';
+  try{
+    const res = await fetch('https://inputtools.google.com/request?ime=handwriting&app=mobilesearch&cs=1&oe=UTF-8', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({options:'enable_pre_space', requests:[{
+        writing_guide:{writing_area_width:Math.round(r.width), writing_area_height:Math.round(r.height)},
+        ink: strokes.map(s=>[s[0].map(Math.round), s[1].map(Math.round), s[2]]),
+        language:'ko'
+      }]})
+    });
+    const data = await res.json();
+    const cands = (data && data[0]==='SUCCESS' && data[1][0][1]) || [];
+    if(!cands.length) throw 0;
+    const known = cands.filter(c=>lookup(c));
+    if(known.length && norm(known[0])===norm(cands[0])){ showCands(cands); search(cands[0]); return; }
+    showCands(cands);
+  }catch(e){
+    $('#cands').innerHTML = '<span style="font-size:19px">글씨를 못 읽었어요. 다시 써 보거나, 자판의 손글씨(✍️) 기능을 써 보세요.</span>';
+  }
+});
+function showCands(cands){
+  $('#cands').innerHTML = '<div style="width:100%;font-family:Jua;font-size:20px">이 글자가 맞나요? 눌러 보세요 👇</div>' +
+    cands.slice(0,6).map(c=>`<button class="chip ${lookup(c)?'hit':''}" type="button" data-c="${esc(c)}">${esc(c)}</button>`).join('');
+}
+$('#cands').addEventListener('click', e=>{ const b=e.target.closest('[data-c]'); if(b){ search(b.dataset.c); } });
+
+/* ===== 기록 & 우리 반 목록 ===== */
+function sheetUrl(){ return (store.get('sheetUrl','') || SHEET_URL || '').trim(); }
+function log(entry){
+  entry.t = Date.now(); entry.who = $('#who').value.trim();
+  const L = store.get('log', []); L.push(entry); store.set('log', L.slice(-2000));
+  const url = sheetUrl();
+  if(url){
+    fetch(url, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'}, body: JSON.stringify(entry)}).catch(()=>{});
+  }
+}
+async function loadEntries(){
+  const url = sheetUrl();
+  if(url){
+    try{
+      const rows = await (await fetch(url)).json();
+      return {src:'sheet', list: rows.map(r=>({t:r[0], who:r[1], q:r[2], item:r[3]||null, emo:r[4]||'', v:r[5]||'u'}))};
+    }catch(e){ return {src:'local-fallback', list: store.get('log', [])}; }
+  }
+  return {src:'local', list: store.get('log', [])};
+}
+async function renderClass(){
+  $('#groups').innerHTML = '<div class="empty">불러오는 중…</div>';
+  const {src, list} = await loadEntries();
+  const kids = new Set(list.map(e=>e.who).filter(Boolean));
+  $('#stat').innerHTML = `${src==='sheet'?'🏫 우리 반 전체':'📱 이 기기'}에서 <span style="color:var(--sea)">${list.length}번</span> 찾아봤어요` +
+    (kids.size? ` · 친구 ${kids.size}명` : '') +
+    (src==='local-fallback'? '<br><small style="color:#c0392b">시트에 연결하지 못해 이 기기 기록만 보여요.</small>' : '');
+  if(!list.length){ $('#groups').innerHTML = '<div class="empty">아직 찾아본 물건이 없어요.<br>🔍 찾아보기에서 물건을 찾아보세요!</div>'; return; }
+  const order = ['o','p','d','x','u'];
+  const title = {o:'플라스틱이에요', p:'플라스틱이 들어 있어요', d:'플라스틱일 수도 있어요', x:'플라스틱이 아니에요', u:'선생님과 함께 알아볼 물건'};
+  let html = '';
+  order.forEach(v=>{
+    const m = new Map();
+    list.filter(e=>(e.v||'u')===v).forEach(e=>{
+      const key = v==='u' ? e.q : e.item;
+      if(!key) return;
+      const o = m.get(key) || {n:0, emo:e.emo||''}; o.n++; m.set(key,o);
+    });
+    if(!m.size) return;
+    const items = [...m.entries()].sort((a,b)=>b[1].n-a[1].n);
+    html += `<div class="group"><h3><i style="background:${V[v].color}">${V[v].mark}</i>${title[v]} (${items.length})</h3><div class="pills">` +
+      items.map(([k,o])=>`<span class="pill" data-n="${esc(k)}">${o.emo} ${esc(k)}${o.n>1?`<small>×${o.n}</small>`:''}</span>`).join('') +
+      '</div></div>';
+  });
+  $('#groups').innerHTML = html;
+}
+$('#groups').addEventListener('click', e=>{ const p=e.target.closest('[data-n]'); if(p){ showView('search'); search(p.dataset.n); } });
+$('#refreshBtn').addEventListener('click', renderClass);
+
+function showView(v){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on', t.dataset.v===v));
+  $('#searchView').style.display = v==='search' ? '' : 'none';
+  $('#classView').style.display = v==='class' ? 'block' : 'none';
+  if(v==='class') renderClass();
+}
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click', ()=>showView(t.dataset.v)));
+
+/* 선생님 설정 */
+const GS = `// 처음 한 번: 위쪽 함수 목록에서 '테스트'를 고르고 실행 → 권한 허용
+function 테스트() {
+  doPost({ postData: { contents: JSON.stringify({ who: '선생님', q: '연결 확인', item: '', emo: '✅', v: 'u' }) } });
+}
+function doPost(e) {
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+  var d = JSON.parse(e.postData.contents);
+  sh.appendRow([new Date(), d.who || '', d.q || '', d.item || '', d.emo || '', d.v || 'u']);
+  return ContentService.createTextOutput('ok');
+}
+function doGet() {
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+  var rows = sh.getLastRow() ? sh.getDataRange().getValues() : [];
+  return ContentService.createTextOutput(JSON.stringify(rows.slice(-3000)))
+    .setMimeType(ContentService.MimeType.JSON);
+}`;
+$('#gs').textContent = GS;
+$('#copyGs').addEventListener('click', ()=>{ navigator.clipboard.writeText(GS).then(()=>toast('복사했어요'), ()=>toast('직접 선택해서 복사해 주세요')); });
+$('#sheetUrl').value = store.get('sheetUrl', '');
+function urlState(){ $('#urlState').textContent = sheetUrl()? '✅ 연결됨' : '연결 안 됨 (이 기기 기록만)'; }
+urlState();
+$('#saveUrl').addEventListener('click', ()=>{ store.set('sheetUrl', $('#sheetUrl').value.trim()); urlState(); toast('저장했어요'); renderClass(); });
+$('#autoSpeak').checked = store.get('autoSpeak', false);
+$('#autoSpeak').addEventListener('change', ()=>store.set('autoSpeak', $('#autoSpeak').checked));
+$('#clearLog').addEventListener('click', ()=>{
+  const b = $('#clearLog');
+  if(b.dataset.sure){ store.set('log', []); delete b.dataset.sure; b.textContent='이 기기의 검색 기록 지우기'; toast('지웠어요'); renderClass(); }
+  else { b.dataset.sure='1'; b.textContent='정말 지울까요? 한 번 더 누르세요'; setTimeout(()=>{ delete b.dataset.sure; b.textContent='이 기기의 검색 기록 지우기'; }, 4000); }
+});
+if('speechSynthesis' in window) speechSynthesis.getVoices();
+</script>
+</body>
+</html>
